@@ -13,8 +13,8 @@
       <el-table-column label="價格" width="150px" prop="price"></el-table-column>
       <el-table-column label="操作" width="250px" fixed="right">
         <template #="{row, $index}">
-          <el-button type="primary" size="samll" icon="Top"></el-button>
-          <el-button type="primary" size="samll" icon="Edit"></el-button>
+          <el-button type="primary" size="samll" :icon="row.isSale==1?'Bottom':'Top'" @click="updateSale(row)"></el-button>
+          <el-button type="primary" size="samll" icon="Edit" @click="updateSku"></el-button>
           <el-button type="primary" size="samll" icon="InfoFilled"></el-button>
           <el-button type="primary" size="samll" icon="Delete"></el-button>
         </template>
@@ -37,8 +37,9 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 // 引入請求
-import { reqSkuList } from '@/api/product/sku';
+import { reqSkuList, reqSaleSku, reqCancelSale } from '@/api/product/sku';
 import type { SkuResponseData, SkuData } from '@/api/product/sku/type';
+import { ElMessage } from 'element-plus';
 
 // 分頁器當前頁碼
 let pageNo = ref<number>(1)
@@ -67,6 +68,32 @@ const getHasSku = async (pager=1) => {
 // 分頁器下拉菜單發生變化觸發
 const handler = (pageSizes: number) => {
   getHasSku()
+}
+
+// 商品的上架與下架的操作
+const updateSale = async (row: SkuData) => {
+  // 如果當前商品的isSale==1，說明當前商品是上架的狀態 -> 更新為下架
+  // 否則else情況與上面情況相反
+  if (row.isSale == 1) {
+    // 下架操作
+    await reqCancelSale(row.id as number)
+    // 提示信息
+    ElMessage({type:'success', message:'下架成功'})
+    // 發請求獲取當前更新完畢的全部已有的SKU
+    getHasSku(pageNo.value)
+  } else {
+    // 上架操作
+    await reqSaleSku(row.id as number)
+    // 提示信息
+    ElMessage({type:'success', message:'上架成功'})
+    // 發請求獲取當前更新完畢的全部已有的SKU
+    getHasSku(pageNo.value)
+  }
+}
+
+// 更新已有的SKU
+const updateSku = () => {
+  ElMessage({type:'success', message:'程序員在努力的更新中...'})
 }
 </script>
 
