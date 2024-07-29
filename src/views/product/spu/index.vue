@@ -50,12 +50,20 @@
                 title="查看SKU列表"
                 @click="findSku(row)"
               ></el-button>
-              <el-button
-                type="primary"
-                size="small"
-                icon="Delete"
-                title="刪除SPU"
-              ></el-button>
+              <el-popconfirm
+                :title="`確定要刪除${row.spuName}?`"
+                width="200px"
+                @confirm="deleteSpu(row)"
+              >
+                <template #reference>
+                  <el-button
+                    type="primary"
+                    size="small"
+                    icon="Delete"
+                    title="刪除SPU"
+                  ></el-button>
+                </template>
+              </el-popconfirm>
             </template>
           </el-table-column>
         </el-table>
@@ -104,8 +112,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue'
-import { reqHasSpu, reqSkuList } from '@/api/product/spu'
+import { ref, watch, onBeforeUnmount } from 'vue'
+import { reqHasSpu, reqSkuList, reqRemoveSpu } from '@/api/product/spu'
 import {
   HasSpuResponseData,
   Records,
@@ -121,6 +129,7 @@ import useCategoryStore from '@/store/modules/category'
 let categoryStore = useCategoryStore()
 
 import type { SkuData, SpuData } from '@/api/product/spu/type'
+import { ElMessage } from 'element-plus'
 
 // 場景的數據
 let scene = ref<number>(0) //0:顯示已有SPU, 1:添加或修改已有SPU, 2:添加SKU的結構
@@ -221,6 +230,30 @@ const findSku = async (row: SpuData) => {
     show.value = true
   }
 }
+
+// 刪除已有的SPU按鈕的回調
+const deleteSpu = async (row: SpuData) => {
+  let result = await reqRemoveSpu(row.id as number)
+  if (result.code == 200) {
+    ElMessage({
+      type: 'success',
+      message: '刪除成功',
+    })
+
+    // 獲取剩餘SPU數據
+    getHasSpu(records.value.length > 1 ? pageNo.value : pageNo.value - 1)
+  } else {
+    ElMessage({
+      type: 'error',
+      message: '刪除失敗',
+    })
+  }
+}
+
+// 路由組件銷毀前，倉庫關於分類的數據
+onBeforeUnmount(() => {
+  categoryStore.$reset()
+})
 </script>
 
 <style scoped lang="scss"></style>

@@ -30,6 +30,8 @@ enum API {
   ADDSKU_URL = '/admin/product/saveSkuInfo',
   // 查看某一個已有的SPU下全部售賣的商品
   SKUINFO_URL = '/admin/product/findBySpuId',
+  // 刪除已有的SPU
+  REMOVESPU_URL = '/admin/product/deleteSpu',
 }
 
 // 獲取某一個三級分類下已有的SPU數據
@@ -77,3 +79,7 @@ export const reqAddSku = (data: SkuData) =>
 // 獲取SKU數據
 export const reqSkuList = (spuId: number | string) =>
   request.get<any, SkuInfoData>(API.SKUINFO_URL + '/' + spuId)
+
+// 刪除已有的SPU
+export const reqRemoveSpu = (spuId: number | string) =>
+  request.delete<any, any>(API.REMOVESPU_URL + '/' + spuId)
