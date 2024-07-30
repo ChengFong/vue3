@@ -52,7 +52,7 @@
             icon="Edit"
             @click="updateSku"
           ></el-button>
-          <el-button type="primary" size="samll" icon="InfoFilled"></el-button>
+          <el-button type="primary" size="samll" icon="InfoFilled" @click="findSku"></el-button>
           <el-button type="primary" size="samll" icon="Delete"></el-button>
         </template>
       </el-table-column>
@@ -69,18 +69,47 @@
       @size-change="handler"
     ></el-pagination>
     <!-- 抽屜組件: 展示商品詳情 -->
-    <el-drawer v-model="drawer" title="I'm outer Drawer" size="50%">
-      <div>
-        <el-button @click="innerDrawer = true">Click me!</el-button>
-        <el-drawer
-          v-model="innerDrawer"
-          title="I'm inner Drawer"
-          :append-to-body="true"
-          :before-close="handleClose"
-        >
-          <p>_(:зゝ∠)_</p>
-        </el-drawer>
-      </div>
+    <el-drawer v-model="drawer">
+      <!-- 標題部份 -->
+      <template #header>
+        <h4>查看商品的詳情</h4>
+      </template>
+      <template #default>
+        <el-row style="margin: 10px 0px;">
+          <el-col :span="6">名稱</el-col>
+          <el-col :span="18">華為meta20</el-col>
+        </el-row>
+        <el-row style="margin: 10px 0px;">
+          <el-col :span="6">描述</el-col>
+          <el-col :span="18">華為YYDS</el-col>
+        </el-row>
+        <el-row style="margin: 10px 0px;">
+          <el-col :span="6">價格</el-col>
+          <el-col :span="18">6999</el-col>
+        </el-row>
+        <el-row style="margin: 10px 0px;">
+          <el-col :span="6">平台屬性</el-col>
+          <el-col :span="18">
+            <el-tag style="margin: 5px;" v-for="item in 10">{{ item }}</el-tag>
+          </el-col>
+        </el-row>
+        <el-row style="margin: 10px 0px;">
+          <el-col :span="6">銷售屬性</el-col>
+          <el-col :span="18">
+            <el-tag style="margin: 5px;" v-for="item in 10">{{ item }}</el-tag>
+          </el-col>
+        </el-row>
+        <el-row style="margin: 10px 0px;">
+          <el-col :span="6">商品圖片</el-col>
+          <el-col :span="18">
+            <el-carousel :interval="4000" type="card" height="200px">
+              <el-carousel-item v-for="item in 6" :key="item">
+                <h3 text="2xl" justify="center">{{ item }}</h3>
+              </el-carousel-item>
+            </el-carousel>
+          </el-col>
+        </el-row>
+      </template>
     </el-drawer>
   </el-card>
 </template>
@@ -98,6 +127,8 @@ let pageNo = ref<number>(1)
 let pageSize = ref<number>(10)
 let total = ref<number>(0)
 let skuArr = ref<SkuData[]>([])
+// 控制抽屜顯示與隱藏的字段
+let drawer = ref<boolean>(false)
 
 // 組件掛載完畢
 onMounted(() => {
@@ -145,6 +176,28 @@ const updateSale = async (row: SkuData) => {
 const updateSku = () => {
   ElMessage({ type: 'success', message: '程序員在努力的更新中...' })
 }
+
+// 查看商品詳情按鈕的回調
+const findSku = () => {
+  // 抽屜展示出來
+  drawer.value = true
+}
 </script>
 
-<style scoped lang="scss"></style>
+<style scoped>
+.el-carousel__item h3 {
+  color: #475669;
+  opacity: 0.75;
+  line-height: 200px;
+  margin: 0;
+  text-align: center;
+}
+
+.el-carousel__item:nth-child(2n) {
+  background-color: #99a9bf;
+}
+
+.el-carousel__item:nth-child(2n + 1) {
+  background-color: #d3dce6;
+}
+</style>
