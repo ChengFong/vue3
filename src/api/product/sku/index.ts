@@ -11,7 +11,7 @@ enum API {
     // 下架
     CANCELSALE_URL = '/admin/product/cancelSale',
     // 獲取商品詳情的接口
-    SKUINFO_URL = '/admin/product/getSkuInfo'
+    SKUINFO_URL = '/admin/product/getSkuInfo',
 }
 
 // 獲取商品SKU的接口
