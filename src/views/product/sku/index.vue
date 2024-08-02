@@ -53,7 +53,20 @@
             @click="updateSku"
           ></el-button>
           <el-button type="primary" size="samll" icon="InfoFilled" @click="findSku(row)"></el-button>
-          <el-button type="primary" size="samll" icon="Delete"></el-button>
+          <el-popconfirm
+            :title="`您確定要刪除${row.skuName}?`"
+            width="200px"
+            icon="Delete"
+            @confirm="removeSku(row.id)"
+          >
+            <template #reference>
+              <el-button
+                type="primary"
+                size="small"
+                icon="Delete"
+              ></el-button>
+            </template>
+          </el-popconfirm>
         </template>
       </el-table-column>
     </el-table>
@@ -117,7 +130,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 // 引入請求
-import { reqSkuList, reqSaleSku, reqCancelSale, reqSkuInfo } from '@/api/product/sku'
+import { reqSkuList, reqSaleSku, reqCancelSale, reqSkuInfo, reqRemoveSku } from '@/api/product/sku'
 import type { SkuResponseData, SkuData, SkuInfoData } from '@/api/product/sku/type'
 import { ElMessage } from 'element-plus'
 
@@ -187,6 +200,21 @@ const findSku = async (row: SkuData) => {
   if (result.code == 200) {
     // 存儲已有的SKU
     skuInfo.value = result.data
+  }
+}
+
+// 刪除某一個已有的商品
+const removeSku = async (id: number) => {
+  // 刪除某一個已有商品的情況
+  let result: any = await reqRemoveSku(id)
+  if (result.code == 200) {
+    // 提示信息
+    ElMessage({type: 'success', message: '刪除成功'})
+    // 獲取已有全部商品
+    getHasSku(skuArr.value.length > 1 ? pageNo.value : pageNo.value-1)
+  } else {
+    // 刪除失敗
+    ElMessage({type: 'error', message: '系統數據不能刪除'})
   }
 }
 </script>
