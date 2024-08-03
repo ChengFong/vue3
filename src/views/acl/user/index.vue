@@ -87,20 +87,20 @@
     </template>
     <!-- 身體部分 -->
     <template #default>
-      <el-form>
-        <el-form-item label="用戶姓名">
+      <el-form :model="userParams" :rules="rules" ref="formRef">
+        <el-form-item label="用戶姓名" prop="username">
           <el-input
             placeholder="請您輸入用戶姓名"
             v-model="userParams.username"
           ></el-input>
         </el-form-item>
-        <el-form-item label="用戶暱稱">
+        <el-form-item label="用戶暱稱" prop="name">
           <el-input
             placeholder="請您輸入用戶暱稱"
             v-model="userParams.name"
           ></el-input>
         </el-form-item>
-        <el-form-item label="用戶密碼">
+        <el-form-item label="用戶密碼" prop="password">
           <el-input
             placeholder="請您輸入用戶密碼"
             v-model="userParams.password"
@@ -118,7 +118,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, onMounted, nextTick } from 'vue'
 import { reqUserInfo, reqAddOrUpdateUser } from '@/api/acl/user'
 import type { UserResponseData, Records, User } from '@/api/acl/user/type'
 import { ElMessage } from 'element-plus'
@@ -139,6 +139,8 @@ let userParams = reactive<User>({
   name: '',
   password: '',
 })
+// 獲取form組件實例
+let formRef = ref<any>()
 
 // 組件掛載完畢
 onMounted(() => {
@@ -171,6 +173,12 @@ const addUser = () => {
     name: '',
     password: '',
   })
+  // 清除上一次的錯誤的提示信息
+  nextTick(() => {
+    formRef.value.clearValidate('username')
+    formRef.value.clearValidate('name')
+    formRef.value.clearValidate('password')
+  })
 }
 
 // 更新已有的用戶按鈕的回調
@@ -182,6 +190,9 @@ const updateUser = (row: User) => {
 
 // 保存按鈕的回調
 const save = async () => {
+  // 點擊保存按鈕的時候，務必須要保證表單全部符合條件在去發請求
+  await formRef.value.validate()
+
   // 保存按鈕: 添加新的用戶 | 更新已有的用戶帳號信息
   let result: any = await reqAddOrUpdateUser(userParams)
   // 添加或者更新成功
@@ -210,6 +221,44 @@ const save = async () => {
 const cancel = () => {
   // 關閉抽屜
   drawer.value = false
+}
+
+// 校驗用戶名字回調函數
+const validatorUsername = (rule: any, value: any, callBack: any) => {
+  // 用戶名字|暱稱，長度只少五位
+  if (value.trim().length > 5) {
+    callBack()
+  } else {
+    callBack(new Error('用戶名字至少五位'))
+  }
+}
+
+// 校驗用戶暱稱回調函數
+const validatorname = (rule: any, value: any, callBack: any) => {
+  // 用戶名字|暱稱，長度只少五位
+  if (value.trim().length > 5) {
+    callBack()
+  } else {
+    callBack(new Error('用戶暱稱至少五位'))
+  }
+}
+const validatorPassword = (rule: any, value: any, callBack: any) => {
+  // 用戶名字|暱稱，長度只少五位
+  if (value.trim().length > 6) {
+    callBack()
+  } else {
+    callBack(new Error('用戶密碼至少六位'))
+  }
+}
+
+// 表單校驗的規則對象
+const rules = {
+  // 用戶名字
+  username: [{ required: true, trigger: 'blur', validator: validatorUsername }],
+  // 用戶暱稱
+  name: [{ required: true, trigger: 'blur', validator: validatorname }],
+  // 用戶的密碼
+  password: [{ required: true, trigger: 'blur', validator: validatorPassword }],
 }
 </script>
 
