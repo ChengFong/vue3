@@ -8,13 +8,13 @@ export interface ResponseData {
 // 代表一個帳號信息的ts類型
 export interface User {
   id?: number
-  createTime: string
-  updateTime: string
+  createTime?: string
+  updateTime?: string
   username?: string
   password?: string
   name?: string
-  phone: string
-  roleName: string
+  phone?: string
+  roleName?: string
 }
 // 數組包含全部的用戶信息
 export type Records = User[]

@@ -89,29 +89,39 @@
     <template #default>
       <el-form>
         <el-form-item label="用戶姓名">
-          <el-input placeholder="請您輸入用戶姓名"></el-input>
+          <el-input
+            placeholder="請您輸入用戶姓名"
+            v-model="userParams.username"
+          ></el-input>
         </el-form-item>
         <el-form-item label="用戶暱稱">
-          <el-input placeholder="請您輸入用戶暱稱"></el-input>
+          <el-input
+            placeholder="請您輸入用戶暱稱"
+            v-model="userParams.name"
+          ></el-input>
         </el-form-item>
         <el-form-item label="用戶密碼">
-          <el-input placeholder="請您輸入用戶密碼"></el-input>
+          <el-input
+            placeholder="請您輸入用戶密碼"
+            v-model="userParams.password"
+          ></el-input>
         </el-form-item>
       </el-form>
     </template>
     <template #footer>
       <div style="flex: auto">
-        <el-button>取消</el-button>
-        <el-button type="primary">確定</el-button>
+        <el-button @click="cancel">取消</el-button>
+        <el-button type="primary" @click="save">確定</el-button>
       </div>
     </template>
   </el-drawer>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
-import { reqUserInfo } from '@/api/acl/user'
+import { ref, reactive, onMounted } from 'vue'
+import { reqUserInfo, reqAddOrUpdateUser } from '@/api/acl/user'
 import type { UserResponseData, Records, User } from '@/api/acl/user/type'
+import { ElMessage } from 'element-plus'
 
 // 默認頁碼
 let pageNo = ref<number>(1)
@@ -123,6 +133,12 @@ let total = ref<number>(0)
 let userArr = ref<Records>([])
 // 定義響應式數據控制抽屜的顯示與隱藏
 let drawer = ref<boolean>(false)
+// 收集用戶信息的響應式數據
+let userParams = reactive<User>({
+  username: '',
+  name: '',
+  password: '',
+})
 
 // 組件掛載完畢
 onMounted(() => {
@@ -149,6 +165,12 @@ const handler = () => {
 const addUser = () => {
   // 抽屜顯示出來
   drawer.value = true
+  // 清空數據
+  Object.assign(userParams, {
+    username: '',
+    name: '',
+    password: '',
+  })
 }
 
 // 更新已有的用戶按鈕的回調
@@ -156,6 +178,38 @@ const addUser = () => {
 const updateUser = (row: User) => {
   // 抽屜顯示出來
   drawer.value = true
+}
+
+// 保存按鈕的回調
+const save = async () => {
+  // 保存按鈕: 添加新的用戶 | 更新已有的用戶帳號信息
+  let result: any = await reqAddOrUpdateUser(userParams)
+  // 添加或者更新成功
+  if (result.code == 200) {
+    // 關閉抽屜
+    drawer.value = false
+    // 提示信息
+    ElMessage({
+      type: 'success',
+      message: userParams.id ? '更新成功' : '添加成功',
+    })
+    // 獲取最新的全部帳號信息
+    getHasUser()
+  } else {
+    // 關閉抽屜
+    drawer.value = false
+    // 提示信息
+    ElMessage({
+      type: 'error',
+      message: userParams.id ? '更新失敗' : '添加失敗',
+    })
+  }
+}
+
+// 取消按鈕的回調
+const cancel = () => {
+  // 關閉抽屜
+  drawer.value = false
 }
 </script>
 
