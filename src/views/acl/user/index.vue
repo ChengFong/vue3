@@ -11,7 +11,9 @@
     </el-form>
   </el-card>
   <el-card style="margin: 10px 0px">
-    <el-button type="primary" size="default">添加用戶</el-button>
+    <el-button type="primary" size="default" @click="addUser">
+      添加用戶
+    </el-button>
     <el-button type="primary" size="default">批量刪除</el-button>
     <!-- table展示用戶信息 -->
     <el-table style="margin: 10px 0px" border :data="userArr">
@@ -53,7 +55,14 @@
           <el-button type="primary" size="small" icon="User">
             分類角色
           </el-button>
-          <el-button type="primary" size="small" icon="Edit">編輯</el-button>
+          <el-button
+            type="primary"
+            size="small"
+            icon="Edit"
+            @click="updateUser(row)"
+          >
+            編輯
+          </el-button>
           <el-button type="primary" size="small" icon="Delete">刪除</el-button>
         </template>
       </el-table-column>
@@ -70,12 +79,39 @@
       @size-change="handler"
     ></el-pagination>
   </el-card>
+  <!-- 抽屜結構: 完成添加新的用戶帳號|更新已有的帳號信息 -->
+  <el-drawer v-model="drawer">
+    <!-- 頭部標題:將來文字內容應該動態的 -->
+    <template #header>
+      <h4>添加用戶</h4>
+    </template>
+    <!-- 身體部分 -->
+    <template #default>
+      <el-form>
+        <el-form-item label="用戶姓名">
+          <el-input placeholder="請您輸入用戶姓名"></el-input>
+        </el-form-item>
+        <el-form-item label="用戶暱稱">
+          <el-input placeholder="請您輸入用戶暱稱"></el-input>
+        </el-form-item>
+        <el-form-item label="用戶密碼">
+          <el-input placeholder="請您輸入用戶密碼"></el-input>
+        </el-form-item>
+      </el-form>
+    </template>
+    <template #footer>
+      <div style="flex: auto">
+        <el-button>取消</el-button>
+        <el-button type="primary">確定</el-button>
+      </div>
+    </template>
+  </el-drawer>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { reqUserInfo } from '@/api/acl/user'
-import type { UserResponseData, Records } from '@/api/acl/user/type'
+import type { UserResponseData, Records, User } from '@/api/acl/user/type'
 
 // 默認頁碼
 let pageNo = ref<number>(1)
@@ -85,6 +121,8 @@ let pageSize = ref<number>(5)
 let total = ref<number>(0)
 // 存儲全部用戶的數組
 let userArr = ref<Records>([])
+// 定義響應式數據控制抽屜的顯示與隱藏
+let drawer = ref<boolean>(false)
 
 // 組件掛載完畢
 onMounted(() => {
@@ -105,6 +143,19 @@ const getHasUser = async (pager = 1) => {
 // 分頁器下拉菜單的自定義事件的回調
 const handler = () => {
   getHasUser()
+}
+
+// 添加用戶按鈕的回調
+const addUser = () => {
+  // 抽屜顯示出來
+  drawer.value = true
+}
+
+// 更新已有的用戶按鈕的回調
+// row: 即為已有用戶的帳號信息
+const updateUser = (row: User) => {
+  // 抽屜顯示出來
+  drawer.value = true
 }
 </script>
 
