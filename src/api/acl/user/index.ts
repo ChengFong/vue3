@@ -1,6 +1,6 @@
 // 用戶管理模塊的接口
 import request from '@/utils/request'
-import type { UserResponseData, User } from './type'
+import type { UserResponseData, User, AllRoleResponseData } from './type'
 
 // 枚舉地址
 enum API {
@@ -10,6 +10,8 @@ enum API {
   ADDUSER_URL = '/admin/acl/user/save',
   // 更新已有的用戶帳號
   UPDATEUSER_URL = '/admin/acl/user/update',
+  // 獲取全部職位，當前帳號擁有的職位接口
+  ALLROLE_URL = '/admin/acl/user/toAssign',
 }
 
 // 獲取用戶帳號信息的接口
@@ -25,3 +27,7 @@ export const reqAddOrUpdateUser = (data: User) => {
     return request.post<any, any>(API.ADDUSER_URL, data)
   }
 }
+
+// 獲取全部職位以及包含當前用戶的已有的職位
+export const reqAllRole = (userId: number) =>
+  request.get<any, AllRoleResponseData>(API.ALLROLE_URL + `/${userId}`)

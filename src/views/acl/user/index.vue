@@ -145,7 +145,7 @@
               :key="index"
               :label="role"
             >
-              {{ role }}
+              {{ role.roleName }}
             </el-checkbox>
           </el-checkbox-group>
         </el-form-item>
@@ -162,8 +162,14 @@
 
 <script setup lang="ts">
 import { ref, reactive, onMounted, nextTick } from 'vue'
-import { reqUserInfo, reqAddOrUpdateUser } from '@/api/acl/user'
-import type { UserResponseData, Records, User } from '@/api/acl/user/type'
+import { reqUserInfo, reqAddOrUpdateUser, reqAllRole } from '@/api/acl/user'
+import type {
+  UserResponseData,
+  Records,
+  User,
+  AllRoleResponseData,
+  AllRole,
+} from '@/api/acl/user/type'
 import { ElMessage } from 'element-plus'
 
 // 默認頁碼
@@ -186,6 +192,11 @@ let userParams = reactive<User>({
 })
 // 獲取form組件實例
 let formRef = ref<any>()
+
+// 存儲全部職位的數據
+let allRole = ref<AllRole>([])
+// 當前用戶已有的職位
+let userRole = ref<AllRole>([])
 
 // 組件掛載完畢
 onMounted(() => {
@@ -315,22 +326,28 @@ const rules = {
 }
 
 // 分配角色按鈕的回調
-const setRole = (row: User) => {
-  // 抽屜顯示出來
-  drawer1.value = true
+const setRole = async (row: User) => {
   // 存儲已有的用戶信息
   Object.assign(userParams, row)
+  // 獲取全部的職位的數據與當前用戶以有的職位數據
+  let result: AllRoleResponseData = await reqAllRole(userParams.id as number)
+  if (result.code == 200) {
+    // 存儲全部的職位
+    allRole.value = result.data.allRolesList
+    // 存儲當前用戶已有的職位
+    userRole.value = result.data.assignRoles
+    // 抽屜顯示出來
+    drawer1.value = true
+  }
 }
 
-// 測試複選框代碼
 // 全選複選框收集數據: 是否全選
 let checkAll = ref<boolean>(false)
-let allRole = ref(['銷售', '前台', '財務', 'boss'])
-let userRole = ref(['銷售'])
 // 設置不確定狀態，僅負責樣式控制
 let isIndeterminate = ref<boolean>(true)
 // 全選複選框的change事件
 const handleCheckAllChange = (val: boolean) => {
+  // val: true(全選) | false(沒有全選)
   userRole.value = val ? allRole.value : []
   isIndeterminate.value = false
 }
