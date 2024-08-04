@@ -52,8 +52,13 @@
       ></el-table-column>
       <el-table-column label="操作" width="300px" align="center">
         <template #="{ row, $index }">
-          <el-button type="primary" size="small" icon="User">
-            分類角色
+          <el-button
+            type="primary"
+            size="small"
+            icon="User"
+            @click="setRole(row)"
+          >
+            分配角色
           </el-button>
           <el-button
             type="primary"
@@ -115,6 +120,44 @@
       </div>
     </template>
   </el-drawer>
+  <!-- 抽屜結構: 用戶某一個已有的帳號進行職位分配 -->
+  <el-drawer v-model="drawer1">
+    <template #header>
+      <h4>分配角色</h4>
+    </template>
+    <template #default>
+      <el-form>
+        <el-form-item label="用戶姓名">
+          <el-input v-model="userParams.username" :disabled="true"></el-input>
+        </el-form-item>
+        <el-form-item label="職位列表">
+          <el-checkbox
+            v-model="checkAll"
+            :indeterminate="isIndeterminate"
+            @change="handleCheckAllChange"
+          >
+            全選
+          </el-checkbox>
+          <!-- 顯示職位的複選框 -->
+          <el-checkbox-group v-model="userRole" @change="handleCheckedChange">
+            <el-checkbox
+              v-for="(role, index) in allRole"
+              :key="index"
+              :label="role"
+            >
+              {{ role }}
+            </el-checkbox>
+          </el-checkbox-group>
+        </el-form-item>
+      </el-form>
+    </template>
+    <template #footer>
+      <div style="flex: auto">
+        <el-button @click="cancelClick">取消</el-button>
+        <el-button type="primary" @click="confirmClick">確定</el-button>
+      </div>
+    </template>
+  </el-drawer>
 </template>
 
 <script setup lang="ts">
@@ -133,6 +176,8 @@ let total = ref<number>(0)
 let userArr = ref<Records>([])
 // 定義響應式數據控制抽屜的顯示與隱藏
 let drawer = ref<boolean>(false)
+// 控制分配角色抽屜顯示與隱藏
+let drawer1 = ref<boolean>(false)
 // 收集用戶信息的響應式數據
 let userParams = reactive<User>({
   username: '',
@@ -242,7 +287,6 @@ const validatorUsername = (rule: any, value: any, callBack: any) => {
     callBack(new Error('用戶名字至少五位'))
   }
 }
-
 // 校驗用戶暱稱回調函數
 const validatorname = (rule: any, value: any, callBack: any) => {
   // 用戶名字|暱稱，長度只少五位
@@ -260,7 +304,6 @@ const validatorPassword = (rule: any, value: any, callBack: any) => {
     callBack(new Error('用戶密碼至少六位'))
   }
 }
-
 // 表單校驗的規則對象
 const rules = {
   // 用戶名字
@@ -269,6 +312,35 @@ const rules = {
   name: [{ required: true, trigger: 'blur', validator: validatorname }],
   // 用戶的密碼
   password: [{ required: true, trigger: 'blur', validator: validatorPassword }],
+}
+
+// 分配角色按鈕的回調
+const setRole = (row: User) => {
+  // 抽屜顯示出來
+  drawer1.value = true
+  // 存儲已有的用戶信息
+  Object.assign(userParams, row)
+}
+
+// 測試複選框代碼
+// 全選複選框收集數據: 是否全選
+let checkAll = ref<boolean>(false)
+let allRole = ref(['銷售', '前台', '財務', 'boss'])
+let userRole = ref(['銷售'])
+// 設置不確定狀態，僅負責樣式控制
+let isIndeterminate = ref<boolean>(true)
+// 全選複選框的change事件
+const handleCheckAllChange = (val: boolean) => {
+  userRole.value = val ? allRole.value : []
+  isIndeterminate.value = false
+}
+// 底部的複選框change事件
+const handleCheckedChange = (value: string[]) => {
+  // 已經勾選的這些項目的長度
+  const checkedCount = value.length
+  checkAll.value = checkedCount === allRole.value.length
+  // 頂部的複選框不確定的樣式
+  isIndeterminate.value = !(checkedCount === allRole.value.length)
 }
 </script>
 
