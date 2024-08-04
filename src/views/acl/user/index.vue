@@ -83,7 +83,7 @@
   <el-drawer v-model="drawer">
     <!-- 頭部標題:將來文字內容應該動態的 -->
     <template #header>
-      <h4>添加用戶</h4>
+      <h4>{{ userParams.id ? '更新用戶' : '添加用戶' }}</h4>
     </template>
     <!-- 身體部分 -->
     <template #default>
@@ -100,7 +100,7 @@
             v-model="userParams.name"
           ></el-input>
         </el-form-item>
-        <el-form-item label="用戶密碼" prop="password">
+        <el-form-item label="用戶密碼" prop="password" v-if="!userParams.id">
           <el-input
             placeholder="請您輸入用戶密碼"
             v-model="userParams.password"
@@ -169,6 +169,7 @@ const addUser = () => {
   drawer.value = true
   // 清空數據
   Object.assign(userParams, {
+    id: 0,
     username: '',
     name: '',
     password: '',
@@ -186,6 +187,14 @@ const addUser = () => {
 const updateUser = (row: User) => {
   // 抽屜顯示出來
   drawer.value = true
+
+  // 存儲收集已有的帳號信息
+  Object.assign(userParams, row)
+  // 清除上一次的錯誤的提示信息
+  nextTick(() => {
+    formRef.value.clearValidate('username')
+    formRef.value.clearValidate('name')
+  })
 }
 
 // 保存按鈕的回調
@@ -205,7 +214,10 @@ const save = async () => {
       message: userParams.id ? '更新成功' : '添加成功',
     })
     // 獲取最新的全部帳號信息
-    getHasUser()
+    getHasUser(userParams.id ? pageNo.value : 1)
+
+    // 瀏覽器自動刷新一次
+    window.location.reload()
   } else {
     // 關閉抽屜
     drawer.value = false
