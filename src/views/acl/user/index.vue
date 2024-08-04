@@ -213,8 +213,6 @@ const save = async () => {
       type: 'success',
       message: userParams.id ? '更新成功' : '添加成功',
     })
-    // 獲取最新的全部帳號信息
-    getHasUser(userParams.id ? pageNo.value : 1)
 
     // 瀏覽器自動刷新一次
     window.location.reload()
