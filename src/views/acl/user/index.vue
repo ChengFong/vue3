@@ -14,9 +14,9 @@
     <el-button type="primary" size="default" @click="addUser">
       添加用戶
     </el-button>
-    <el-button type="primary" size="default">批量刪除</el-button>
+    <el-button type="primary" size="default" :disabled="selectIdArr.length?false:true" @click="deleteSelectUser">批量刪除</el-button>
     <!-- table展示用戶信息 -->
-    <el-table style="margin: 10px 0px" border :data="userArr">
+    <el-table style="margin: 10px 0px" border :data="userArr" @selection-change="selectChange">
       <el-table-column type="selection" align="center"></el-table-column>
       <el-table-column label="#" align="center" type="index"></el-table-column>
       <el-table-column label="ID" align="center" prop="id"></el-table-column>
@@ -68,7 +68,16 @@
           >
             編輯
           </el-button>
-          <el-button type="primary" size="small" icon="Delete">刪除</el-button>
+          <el-popconfirm
+            :title="`您確定要刪除${row.username}`"
+            width="260px"
+            icon="Delete"
+            @confirm="deleteUser(row.id)"
+            >
+            <template #reference>
+              <el-button type="primary" size="small" icon="Delete">刪除</el-button>
+            </template>
+          </el-popconfirm>
         </template>
       </el-table-column>
     </el-table>
@@ -162,7 +171,7 @@
 
 <script setup lang="ts">
 import { ref, reactive, onMounted, nextTick } from 'vue'
-import { reqUserInfo, reqAddOrUpdateUser, reqAllRole, reqSetUserRole } from '@/api/acl/user'
+import { reqUserInfo, reqAddOrUpdateUser, reqAllRole, reqSetUserRole, reqDeleteUser, reqRemoveUser } from '@/api/acl/user'
 import type {
   UserResponseData,
   Records,
@@ -198,6 +207,9 @@ let formRef = ref<any>()
 let allRole = ref<AllRole>([])
 // 當前用戶已有的職位
 let userRole = ref<AllRole>([])
+
+// 準備一個數組存儲批量刪除的用戶的ID
+let selectIdArr = ref<User[]>([])
 
 // 組件掛載完畢
 onMounted(() => {
@@ -377,6 +389,33 @@ const confirmClick = async () => {
     drawer1.value = false
     // 獲取更新完畢用戶的信息， 更新完畢留在當前頁
     getHasUser(pageNo.value)
+  }
+}
+
+// 刪除某一個用戶
+const deleteUser = async (userId: number) => {
+  let result: any = await reqRemoveUser(userId)
+  if (result.code == 200) {
+    ElMessage({type:'success', message:'刪除成功'})
+    getHasUser(userArr.value.length > 1 ?pageNo.value : pageNo.value-1)
+  }
+}
+
+// table複選框勾選的時候會觸發的事件
+const selectChange = (value: any) => {
+  selectIdArr.value = value
+}
+// 批量刪除按鈕的回調
+const deleteSelectUser = async () => {
+  // 整理批量刪除的參數
+  let idsList: any = selectIdArr.value.map(item => {
+    return item.id
+  })
+  // 批量刪除的請求
+  let result: any = await reqDeleteUser(idsList)
+  if (result.code == 200) {
+    ElMessage({type:'success', message:'刪除成功'})
+    getHasUser(userArr.value.length > 1 ?pageNo.value : pageNo.value-1)
   }
 }
 </script>

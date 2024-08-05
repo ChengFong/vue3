@@ -13,7 +13,11 @@ enum API {
   // 獲取全部職位，當前帳號擁有的職位接口
   ALLROLE_URL = '/admin/acl/user/toAssign',
   // 給已有的用戶分配角色接口
-  SETROLE_URL = '/amdin/acl/user/doAssignRole'
+  SETROLE_URL = '/amdin/acl/user/doAssignRole',
+  // 刪除某一個帳號
+  DELETEUSER_URL = '/admin/acl/user/remove',
+  // 批量刪除的接口
+  DELETEALLUSER_URL = '/admin/acl/user/batchRemove'
 }
 
 // 獲取用戶帳號信息的接口
@@ -36,3 +40,9 @@ export const reqAllRole = (userId: number) =>
 
 // 分配職位
 export const reqSetUserRole = (data: SetRoleData) => request.post<any, any>(API.SETROLE_URL, data)
+
+// 刪除某一個帳號的信息
+export const reqRemoveUser = (userId: number) => request.delete<any,any> (API.DELETEUSER_URL + `/${userId}`)
+
+// 批量刪除的接口
+export const reqDeleteUser = (idList: number[]) => request.delete(API.DELETEALLUSER_URL, {data:idList})
