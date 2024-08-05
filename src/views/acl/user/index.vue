@@ -153,7 +153,7 @@
     </template>
     <template #footer>
       <div style="flex: auto">
-        <el-button @click="cancelClick">取消</el-button>
+        <el-button @click="drawer1=false">取消</el-button>
         <el-button type="primary" @click="confirmClick">確定</el-button>
       </div>
     </template>
@@ -162,13 +162,14 @@
 
 <script setup lang="ts">
 import { ref, reactive, onMounted, nextTick } from 'vue'
-import { reqUserInfo, reqAddOrUpdateUser, reqAllRole } from '@/api/acl/user'
+import { reqUserInfo, reqAddOrUpdateUser, reqAllRole, reqSetUserRole } from '@/api/acl/user'
 import type {
   UserResponseData,
   Records,
   User,
   AllRoleResponseData,
   AllRole,
+  SetRoleData
 } from '@/api/acl/user/type'
 import { ElMessage } from 'element-plus'
 
@@ -358,6 +359,25 @@ const handleCheckedChange = (value: string[]) => {
   checkAll.value = checkedCount === allRole.value.length
   // 頂部的複選框不確定的樣式
   isIndeterminate.value = !(checkedCount === allRole.value.length)
+}
+
+// 確定按鈕的回調(分配職位)
+const confirmClick = async () => {
+  // 收集參數
+  let data: SetRoleData = {
+    userId: userParams.id as number,
+    roleIdList: userRole.value.map(item => item.id as number)
+  }
+  // 分配用戶的職位
+  let result: any = await reqSetUserRole(data)
+  if (result.code == 200) {
+    // 提示信息
+    ElMessage({type: 'success', message: '分配職務成功'})
+    // 關閉抽屜
+    drawer1.value = false
+    // 獲取更新完畢用戶的信息， 更新完畢留在當前頁
+    getHasUser(pageNo.value)
+  }
 }
 </script>
 
