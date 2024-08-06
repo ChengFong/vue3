@@ -12,13 +12,20 @@
   </el-card>
   <el-card style="margin: 10px 0px;">
     <el-button type="primary" size="default" icon="Plus">添加職位</el-button>
-    <el-table border style="margin: 10px 0px;">
+    <el-table border style="margin: 10px 0px;" :data="allRole">
       <el-table-column type="index" align="center" label="#"></el-table-column>
-      <el-table-column label="ID" align="center"></el-table-column>
-      <el-table-column label="職位名稱" align="center" show-overflow-tooltip></el-table-column>
-      <el-table-column label="創建時間" align="center" show-overflow-tooltip></el-table-column>
-      <el-table-column label="更新時間" align="center" show-overflow-tooltip></el-table-column>
-      <el-table-column label="操作" width="260px" align="center"></el-table-column>
+      <el-table-column label="ID" align="center" prop="id"></el-table-column>
+      <el-table-column label="職位名稱" align="center" show-overflow-tooltip prop="roleName"></el-table-column>
+      <el-table-column label="創建時間" align="center" show-overflow-tooltip prop="createTime"></el-table-column>
+      <el-table-column label="更新時間" align="center" show-overflow-tooltip prop="updateTime"></el-table-column>
+      <el-table-column label="操作" width="280px" align="center">
+        <!-- row: 已有的職位對象 -->
+        <template #="{ row, $index }">
+          <el-button type="primary" size="smal" icon="User">分配權限</el-button>
+          <el-button type="primary" size="smal" icon="Edit">編輯</el-button>
+          <el-button type="primary" size="smal" icon="Delete">刪除</el-button>
+        </template>
+      </el-table-column>
     </el-table>
     <!-- 分頁器 -->
     <el-pagination
@@ -27,18 +34,43 @@
       :page-sizes="[10, 20, 30, 40]"
       layout="prev, pager, next, jumper,->,sizes,total"
       :background="true"
-      :total="400"
+      :total="total"
     ></el-pagination> 
   </el-card>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
+// 請求方法
+import { reqAllRoleList } from '@/api/acl/role';
+import type { RoleResponseData, Records } from '@/api/acl/role/type'; 
 
 // 默認頁碼
 let pageNo = ref<number>(1)
 // 一頁展示幾條數據
 let pageSize = ref<number>(10)
+// 職位總各數
+let total = ref<number>(0)
+// 搜尋職位關鍵字
+let keyword = ref<string>('')
+// 存儲全部已有的職位
+let allRole = ref<Records>([])
+
+// 組件掛載完畢
+onMounted(()=> {
+  // 獲取職位請求
+  getHasRole()
+})
+
+const getHasRole = async (pager = 1) => {
+  // 修改當前頁碼
+  pageNo.value = pager
+  let result: RoleResponseData = await reqAllRoleList(pageNo.value, pageSize.value, keyword.value)
+  if (result.code == 200) {
+    total.value = result.data.total
+    allRole.value = result.data.records
+  }
+}
 </script>
 
 <style scoped lang="scss">
