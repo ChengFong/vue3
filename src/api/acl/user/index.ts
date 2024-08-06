@@ -21,8 +21,8 @@ enum API {
 }
 
 // 獲取用戶帳號信息的接口
-export const reqUserInfo = (page: number, limit: number) =>
-  request.get<any, UserResponseData>(API.ALLUSER_URL + `/${page}/${limit}`)
+export const reqUserInfo = (page: number, limit: number, username: string) =>
+  request.get<any, UserResponseData>(API.ALLUSER_URL + `/${page}/${limit}?username=${username}`)
 
 // 添加用戶與更新已有用戶的接口
 export const reqAddOrUpdateUser = (data: User) => {

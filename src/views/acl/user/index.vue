@@ -2,11 +2,11 @@
   <el-card style="height: 80px">
     <el-form :inline="true" class="form">
       <el-form-item label="用戶名:">
-        <el-input placeholder="請你輸入搜索用戶名"></el-input>
+        <el-input placeholder="請你輸入搜索用戶名" v-model="keyword"></el-input>
       </el-form-item>
       <el-form-item>
-        <el-button type="primary" size="default">搜索</el-button>
-        <el-button type="primary" size="default">重置</el-button>
+        <el-button type="primary" size="default" :disabled="keyword?false:true" @click="search">搜索</el-button>
+        <el-button type="primary" size="default" @click="reset">重置</el-button>
       </el-form-item>
     </el-form>
   </el-card>
@@ -181,6 +181,7 @@ import type {
   SetRoleData
 } from '@/api/acl/user/type'
 import { ElMessage } from 'element-plus'
+import useLayoutSettingStore from '@/store/modules/setting'
 
 // 默認頁碼
 let pageNo = ref<number>(1)
@@ -211,6 +212,12 @@ let userRole = ref<AllRole>([])
 // 準備一個數組存儲批量刪除的用戶的ID
 let selectIdArr = ref<User[]>([])
 
+// 定義響應式數據: 收集用戶輸入進來的關鍵字
+let keyword = ref<string>('')
+
+// 獲取模板setting倉庫
+let settingStore = useLayoutSettingStore()
+
 // 組件掛載完畢
 onMounted(() => {
   getHasUser()
@@ -220,7 +227,7 @@ onMounted(() => {
 const getHasUser = async (pager = 1) => {
   // 收集當前頁碼
   pageNo.value = pager
-  let result: UserResponseData = await reqUserInfo(pageNo.value, pageSize.value)
+  let result: UserResponseData = await reqUserInfo(pageNo.value, pageSize.value, keyword.value)
   if (result.code == 200) {
     total.value = result.data.total
     userArr.value = result.data.records
@@ -417,6 +424,18 @@ const deleteSelectUser = async () => {
     ElMessage({type:'success', message:'刪除成功'})
     getHasUser(userArr.value.length > 1 ?pageNo.value : pageNo.value-1)
   }
+}
+
+// 搜索按鈕的問題
+const search = () => {
+  // 根據關鍵字獲取相應的用戶數據
+  getHasUser()
+  // 清空關鍵字
+  keyword.value = ''
+}
+// 重置按鈕
+const reset = () => {
+  settingStore.refsh = !settingStore.refsh 
 }
 </script>
 
