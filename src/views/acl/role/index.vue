@@ -2,11 +2,11 @@
   <el-card>
     <el-form :inline="true" class="form">
       <el-form-item label="職位搜索">
-        <el-input placeholder="請你輸入搜索職位關鍵字"></el-input>
+        <el-input placeholder="請你輸入搜索職位關鍵字" v-model="keyword"></el-input>
       </el-form-item>
       <el-form-item>
-        <el-button type="primary" size="default">搜索</el-button>
-        <el-button type="primary" size="default">重置</el-button>
+        <el-button type="primary" size="default" :disabled="keyword?false:true" @click="search">搜索</el-button>
+        <el-button type="primary" size="default" @click="reset">重置</el-button>
       </el-form-item>
     </el-form>
   </el-card>
@@ -35,6 +35,8 @@
       layout="prev, pager, next, jumper,->,sizes,total"
       :background="true"
       :total="total"
+      @current-change="getHasRole"
+      @size-change="sizeChange"
     ></el-pagination> 
   </el-card>
 </template>
@@ -56,12 +58,17 @@ let keyword = ref<string>('')
 // 存儲全部已有的職位
 let allRole = ref<Records>([])
 
+// 引入骨架的倉庫
+import useLayoutSettingStore from '@/store/modules/setting';
+let settingStore = useLayoutSettingStore()
+
 // 組件掛載完畢
 onMounted(()=> {
   // 獲取職位請求
   getHasRole()
 })
 
+// 獲取全部用戶信息的方法|分頁器當前頁碼發生變化的回調
 const getHasRole = async (pager = 1) => {
   // 修改當前頁碼
   pageNo.value = pager
@@ -70,6 +77,23 @@ const getHasRole = async (pager = 1) => {
     total.value = result.data.total
     allRole.value = result.data.records
   }
+}
+
+// 下拉菜單的回調
+const sizeChange = () => {
+  getHasRole()
+}
+
+// 搜索按鈕的回調
+const search = () => {
+  // 再次發請求根據關鍵字
+  getHasRole()
+  keyword.value = ''
+}
+
+// 重置按鈕的回調
+const reset = () => {
+  settingStore.refsh = !settingStore.refsh
 }
 </script>
 
