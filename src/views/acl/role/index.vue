@@ -11,7 +11,7 @@
     </el-form>
   </el-card>
   <el-card style="margin: 10px 0px;">
-    <el-button type="primary" size="default" icon="Plus">添加職位</el-button>
+    <el-button type="primary" size="default" icon="Plus" @click="addRole">添加職位</el-button>
     <el-table border style="margin: 10px 0px;" :data="allRole">
       <el-table-column type="index" align="center" label="#"></el-table-column>
       <el-table-column label="ID" align="center" prop="id"></el-table-column>
@@ -22,7 +22,7 @@
         <!-- row: 已有的職位對象 -->
         <template #="{ row, $index }">
           <el-button type="primary" size="smal" icon="User">分配權限</el-button>
-          <el-button type="primary" size="smal" icon="Edit">編輯</el-button>
+          <el-button type="primary" size="smal" icon="Edit" @click="updateRole(row)">編輯</el-button>
           <el-button type="primary" size="smal" icon="Delete">刪除</el-button>
         </template>
       </el-table-column>
@@ -39,13 +39,25 @@
       @size-change="sizeChange"
     ></el-pagination> 
   </el-card>
+  <!-- 添加職位與更新已有職位的結構: 對話框 -->
+  <el-dialog v-model="dialogVisible" title="添加職位">
+    <el-form>
+      <el-form-item label="職位名稱">
+        <el-input placeholder="請你輸入職位名稱"></el-input>
+      </el-form-item>
+    </el-form>
+    <template #footer>
+      <el-button type="primary" size="default" @click="dialogVisible=false">取消</el-button>
+      <el-button type="primary" size="default">確定</el-button>
+    </template>
+  </el-dialog>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 // 請求方法
 import { reqAllRoleList } from '@/api/acl/role';
-import type { RoleResponseData, Records } from '@/api/acl/role/type'; 
+import type { RoleResponseData, Records, RoleData } from '@/api/acl/role/type'; 
 
 // 默認頁碼
 let pageNo = ref<number>(1)
@@ -57,6 +69,8 @@ let total = ref<number>(0)
 let keyword = ref<string>('')
 // 存儲全部已有的職位
 let allRole = ref<Records>([])
+// 控制對話框的顯示與隱藏
+let dialogVisible = ref<boolean>(false)
 
 // 引入骨架的倉庫
 import useLayoutSettingStore from '@/store/modules/setting';
@@ -78,7 +92,6 @@ const getHasRole = async (pager = 1) => {
     allRole.value = result.data.records
   }
 }
-
 // 下拉菜單的回調
 const sizeChange = () => {
   getHasRole()
@@ -90,10 +103,20 @@ const search = () => {
   getHasRole()
   keyword.value = ''
 }
-
 // 重置按鈕的回調
 const reset = () => {
   settingStore.refsh = !settingStore.refsh
+}
+
+// 添加職位按鈕的回調
+const addRole = () => {
+  // 對話框顯示出來
+  dialogVisible.value = true
+}
+// 更新已有的職位按鈕的回調
+const updateRole = (row: RoleData) => {
+   // 對話框顯示出來
+   dialogVisible.value = true
 }
 </script>
 
