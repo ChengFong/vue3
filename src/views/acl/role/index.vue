@@ -40,23 +40,23 @@
     ></el-pagination> 
   </el-card>
   <!-- 添加職位與更新已有職位的結構: 對話框 -->
-  <el-dialog v-model="dialogVisible" title="添加職位">
-    <el-form>
-      <el-form-item label="職位名稱">
-        <el-input placeholder="請你輸入職位名稱"></el-input>
+  <el-dialog v-model="dialogVisible" :title="roleParams.id?'更新職位':'添加職位'">
+    <el-form :model="roleParams" :rules="rules" ref="form">
+      <el-form-item label="職位名稱" prop="roleName">
+        <el-input placeholder="請你輸入職位名稱" v-model="roleParams.roleName"></el-input>
       </el-form-item>
     </el-form>
     <template #footer>
       <el-button type="primary" size="default" @click="dialogVisible=false">取消</el-button>
-      <el-button type="primary" size="default">確定</el-button>
+      <el-button type="primary" size="default" @click="save">確定</el-button>
     </template>
   </el-dialog>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, reactive, onMounted, nextTick } from 'vue';
 // 請求方法
-import { reqAllRoleList } from '@/api/acl/role';
+import { reqAllRoleList, reqAddOrUpdateRole } from '@/api/acl/role';
 import type { RoleResponseData, Records, RoleData } from '@/api/acl/role/type'; 
 
 // 默認頁碼
@@ -71,9 +71,16 @@ let keyword = ref<string>('')
 let allRole = ref<Records>([])
 // 控制對話框的顯示與隱藏
 let dialogVisible = ref<boolean>(false)
+// 收集新增崗位數據
+let roleParams = reactive<RoleData>({
+  roleName: ''
+})
+// 獲取form組件實例
+let form = ref<any>()
 
 // 引入骨架的倉庫
 import useLayoutSettingStore from '@/store/modules/setting';
+import { ElMessage } from 'element-plus';
 let settingStore = useLayoutSettingStore()
 
 // 組件掛載完畢
@@ -112,11 +119,57 @@ const reset = () => {
 const addRole = () => {
   // 對話框顯示出來
   dialogVisible.value = true
+  // 清空數據
+  Object.assign(roleParams, {
+    roleName: '',
+    id: 0
+  })
+  // 清空上一次表單校驗錯誤結果
+  nextTick(()=>{
+    form.value.clearValidate('roleName')
+  })
 }
 // 更新已有的職位按鈕的回調
 const updateRole = (row: RoleData) => {
    // 對話框顯示出來
    dialogVisible.value = true
+   // 存儲已有的職位---帶有ID的
+   Object.assign(roleParams, row)
+   // 清空上一次表單校驗錯誤結果
+  nextTick(()=>{
+    form.value.clearValidate('roleName')
+  })
+}
+
+// 自定義校驗規則的回調
+const validatorRoleName = (rule: any, value: any, callBack: any) => {
+  if (value.trim().length >= 2) {
+    callBack()
+  } else {
+    callBack(new Error('職位名稱至少兩位'))
+  }
+}
+// 職位校驗規則
+const rules = {
+  roleName: [
+    {required: true, trigger: 'blur', validator: validatorRoleName}
+  ]
+}
+
+// 確定按鈕的回調
+const save = async () => {
+  // 表單校驗結果，結果通過在發請求、結果沒有通過不應該再發生請求
+  await form.value.validate()
+  // 添加職位|更新職位的請求
+  let result: any = await reqAddOrUpdateRole(roleParams)
+  if (result.code == 200) {
+    // 提示文字
+    ElMessage({type: 'success', message: roleParams.id?'更新成功':'添加成功'})
+    // 對話框顯示
+    dialogVisible.value = false
+    // 再次獲取全部的已有職位
+    getHasRole(roleParams.id?pageNo.value:1)
+  }
 }
 </script>
 
