@@ -11,7 +11,9 @@ enum API {
     // 更新已有的職位
     UPDATEROLE_URL = '/admin/acl/role/update',
     // 獲取全部的菜單與按鈕的數據
-    ALLPERMISSION_URL = '/admin/acl/permission/toAssign'
+    ALLPERMISSION_URL = '/admin/acl/permission/toAssign',
+    // 給相應的職位分配權限
+    SETPERMISSION_URL = '/admin/acl/permission/doAssign'
 }
 
 // 獲取全部的角色
@@ -29,3 +31,6 @@ export const reqAddOrUpdateRole = (data: RoleData) => {
 
 // 獲取全部菜單與按鈕權限數據
 export const reqAllMenuList = (roleId: number) => request.get<any, MenuResponseData>(API.ALLPERMISSION_URL + `/${roleId}`)
+
+// 給相應的職位下發權限
+export const reqSetPermission = (roleId: number, permissionId: number[]) => request.post<any, any>(API.SETPERMISSION_URL + `roleId=${roleId}&permissionId=${permissionId}`)

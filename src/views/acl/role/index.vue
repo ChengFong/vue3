@@ -59,18 +59,20 @@
     <template #default>
       <!-- 樹形控件 -->
       <el-tree
+        ref="tree"
         style="max-width: 600px"
         :data="menuArr"
         show-checkbox
         node-key="id"
         default-expand-all
+        :default-checked-keys="selectArr"
         :props="defaultProps"
       />
     </template>
     <template #footer>
       <div style="flex: auto">
         <el-button @click="drawer=false">取消</el-button>
-        <el-button type="primary">確定</el-button>
+        <el-button type="primary" @click="handler">確定</el-button>
       </div>
     </template>
   </el-drawer>
@@ -79,8 +81,8 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted, nextTick } from 'vue';
 // 請求方法
-import { reqAllRoleList, reqAddOrUpdateRole, reqAllMenuList } from '@/api/acl/role';
-import type { RoleResponseData, Records, RoleData, MenuResponseData, MenuList } from '@/api/acl/role/type'; 
+import { reqAllRoleList, reqAddOrUpdateRole, reqAllMenuList, reqSetPermission } from '@/api/acl/role';
+import type { RoleResponseData, Records, RoleData, MenuResponseData, MenuList, MenuData } from '@/api/acl/role/type'; 
 
 // 默認頁碼
 let pageNo = ref<number>(1)
@@ -105,8 +107,14 @@ let drawer = ref<boolean>(false)
 // 定義數組存儲用戶權限的數據
 let menuArr = ref<MenuList>([])
 
+// 準備一個數組: 數組用於存儲勾選的節點的ID(四級的)
+let selectArr = ref<number[]>([])
+// 獲取tree組件實例
+let tree = ref<any>()
+
 // 引入骨架的倉庫
 import useLayoutSettingStore from '@/store/modules/setting';
+import { ElMessage } from 'element-plus';
 let settingStore = useLayoutSettingStore()
 
 // 組件掛載完畢
@@ -209,13 +217,48 @@ const setPermission = async (row: RoleData) => {
   let result: MenuResponseData = await reqAllMenuList(roleParams.id as number)
   if (result.code == 200) {
     menuArr.value = result.data
+    selectArr.value = filterSelectArr(menuArr.value, [])
   }
+}
+
+const filterSelectArr = (allData: MenuList, initArr: any) => {
+  allData.forEach((item: MenuData) => {
+    if (item.select && item.level == 4) {
+      initArr.push(item.id)
+    }
+    if (item.children && item.children.length > 0) {
+      filterSelectArr(item.children, initArr)
+    }
+  })
+  return initArr
 }
 
 // 樹型控件資料
 const defaultProps = {
   children: 'children',
   label: 'name',
+}
+
+// 抽屜確定按鈕的回調
+const handler = async () => {
+  // 職位的ID
+  const roleId = roleParams.id as number
+  // 選中節點的ID
+  let arr = tree.value.getCheckedKeys()
+  // 半選的ID
+  let arr1 = tree.value.getHalfCheckedKeys()
+  let permissionId = arr.concat(arr1)
+
+  // 下發權限
+  let result: any = await reqSetPermission(roleId, permissionId)
+  if (result.code == 200) {
+    // 抽屜關閉
+    drawer.value = false
+    // 提示信息
+    ElMessage({type:'success', message:'分配權限成功'})
+    // 頁面刷新
+    window.location.reload()
+  }
 }
 </script>
 
