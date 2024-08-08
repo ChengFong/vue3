@@ -30,3 +30,25 @@ export interface RoleResponseData extends ResponseData {
         pages: number
     }
 }
+
+// 菜單與按鈕數據的ts類型
+export interface MenuData {
+    id: number
+    createTime: string
+    updateTime: string
+    pid: number
+    name: string
+    code: string
+    toCode: string
+    type: number
+    status: null
+    level: number
+    children?: MenuList
+    select: boolean
+}
+export type MenuList = MenuData[]
+
+// 菜單權限與按鈕權限數據的ts類型
+export interface MenuResponseData extends ResponseData {
+    data: MenuList
+}

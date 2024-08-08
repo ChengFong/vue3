@@ -21,7 +21,7 @@
       <el-table-column label="操作" width="280px" align="center">
         <!-- row: 已有的職位對象 -->
         <template #="{ row, $index }">
-          <el-button type="primary" size="smal" icon="User">分配權限</el-button>
+          <el-button type="primary" size="smal" icon="User" @click="setPermission(row)">分配權限</el-button>
           <el-button type="primary" size="smal" icon="Edit" @click="updateRole(row)">編輯</el-button>
           <el-button type="primary" size="smal" icon="Delete">刪除</el-button>
         </template>
@@ -51,13 +51,36 @@
       <el-button type="primary" size="default" @click="save">確定</el-button>
     </template>
   </el-dialog>
+  <!-- 抽屜組件: 分配職位的菜單權限與按鈕的權限 -->
+  <el-drawer v-model="drawer">
+    <template #header>
+      <h4>分配菜單與按鈕的權限</h4>
+    </template>
+    <template #default>
+      <!-- 樹形控件 -->
+      <el-tree
+        style="max-width: 600px"
+        :data="menuArr"
+        show-checkbox
+        node-key="id"
+        default-expand-all
+        :props="defaultProps"
+      />
+    </template>
+    <template #footer>
+      <div style="flex: auto">
+        <el-button @click="drawer=false">取消</el-button>
+        <el-button type="primary">確定</el-button>
+      </div>
+    </template>
+  </el-drawer>
 </template>
 
 <script setup lang="ts">
 import { ref, reactive, onMounted, nextTick } from 'vue';
 // 請求方法
-import { reqAllRoleList, reqAddOrUpdateRole } from '@/api/acl/role';
-import type { RoleResponseData, Records, RoleData } from '@/api/acl/role/type'; 
+import { reqAllRoleList, reqAddOrUpdateRole, reqAllMenuList } from '@/api/acl/role';
+import type { RoleResponseData, Records, RoleData, MenuResponseData, MenuList } from '@/api/acl/role/type'; 
 
 // 默認頁碼
 let pageNo = ref<number>(1)
@@ -77,10 +100,13 @@ let roleParams = reactive<RoleData>({
 })
 // 獲取form組件實例
 let form = ref<any>()
+// 控制抽屜顯示與隱藏
+let drawer = ref<boolean>(false)
+// 定義數組存儲用戶權限的數據
+let menuArr = ref<MenuList>([])
 
 // 引入骨架的倉庫
 import useLayoutSettingStore from '@/store/modules/setting';
-import { ElMessage } from 'element-plus';
 let settingStore = useLayoutSettingStore()
 
 // 組件掛載完畢
@@ -170,6 +196,26 @@ const save = async () => {
     // 再次獲取全部的已有職位
     getHasRole(roleParams.id?pageNo.value:1)
   }
+}
+
+// 分配權限按鈕的回調
+// 已有的職位的數據
+const setPermission = async (row: RoleData) => {
+  // 抽屜顯示出來
+  drawer.value = true
+  // 收集當前要分類權限的職位的數據
+  Object.assign(roleParams, row)
+  // 根據職位獲取權限的數據
+  let result: MenuResponseData = await reqAllMenuList(roleParams.id as number)
+  if (result.code == 200) {
+    menuArr.value = result.data
+  }
+}
+
+// 樹型控件資料
+const defaultProps = {
+  children: 'children',
+  label: 'name',
 }
 </script>
 
