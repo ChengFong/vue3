@@ -23,7 +23,16 @@
         <template #="{ row, $index }">
           <el-button type="primary" size="smal" icon="User" @click="setPermission(row)">分配權限</el-button>
           <el-button type="primary" size="smal" icon="Edit" @click="updateRole(row)">編輯</el-button>
-          <el-button type="primary" size="smal" icon="Delete">刪除</el-button>
+          <el-popconfirm
+            :title="`您確定要刪除${row.roleName}`"
+            width="260px"
+            icon="Delete"
+            @confirm="removeRole(row.id)"
+            >
+            <template #reference>
+              <el-button type="primary" size="small" icon="Delete">刪除</el-button>
+            </template>
+          </el-popconfirm>
         </template>
       </el-table-column>
     </el-table>
@@ -81,7 +90,7 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted, nextTick } from 'vue';
 // 請求方法
-import { reqAllRoleList, reqAddOrUpdateRole, reqAllMenuList, reqSetPermission } from '@/api/acl/role';
+import { reqAllRoleList, reqAddOrUpdateRole, reqAllMenuList, reqSetPermission, reqRemoveRole } from '@/api/acl/role';
 import type { RoleResponseData, Records, RoleData, MenuResponseData, MenuList, MenuData } from '@/api/acl/role/type'; 
 
 // 默認頁碼
@@ -258,6 +267,16 @@ const handler = async () => {
     ElMessage({type:'success', message:'分配權限成功'})
     // 頁面刷新
     window.location.reload()
+  }
+}
+
+// 刪除已有的職位
+const removeRole = async (id: number) => {
+  let result:any = await reqRemoveRole
+  if (result.code == 200) {
+    // 提示信息
+    ElMessage({type:'success', message:'刪除成功'})
+    getHasRole(allRole.value.length > 1 ? pageNo.value : pageNo.value - 1)
   }
 }
 </script>
