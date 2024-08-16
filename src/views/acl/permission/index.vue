@@ -6,26 +6,26 @@
     <el-table-column label="操作">
       <!-- row: 即為已有的菜單對象|按鈕的對象的數據 -->
        <template #="{ row, $index }">
-          <el-button @click="addPermission()" type="primary" size="small" :disabled="row.level==4?true:false">{{ row.level==3?'添加功能':'添加菜單' }}</el-button>
+          <el-button @click="addPermission(row)" type="primary" size="small" :disabled="row.level==4?true:false">{{ row.level==3?'添加功能':'添加菜單' }}</el-button>
           <el-button @click="updatePermission(row)" type="primary" size="small" :disabled="row.level==1?true:false">編輯</el-button>
           <el-button type="primary" size="small" :disabled="row.level==1?true:false">刪除</el-button>
        </template>
     </el-table-column>
   </el-table>
   <!-- 對話框組件: 添加或者更新已有的菜單的數據結構 -->
-  <el-dialog title="添加菜單" v-model="dialogVisible">
+  <el-dialog :title="menuData.id?'更新菜單':'添加菜單'" v-model="dialogVisible">
     <!-- 表單組件: 收集新增與已有的菜單的數據 -->
     <el-form>
       <el-form-item label="名稱">
-        <el-input placeholder="請你輸入菜單名稱"></el-input>
+        <el-input placeholder="請你輸入菜單名稱" v-model="menuData.name"></el-input>
       </el-form-item>
       <el-form-item label="權限">
-        <el-input placeholder="請你輸入權限數值"></el-input>
+        <el-input placeholder="請你輸入權限數值" v-model="menuData.code"></el-input>
       </el-form-item>
     </el-form>
     <template #footer>
       <el-button @click="dialogVisible = false">取消</el-button>
-      <el-button type="primary" @click="dialogVisible = false">
+      <el-button type="primary" @click="save()">
         確定
       </el-button>
     </template>
@@ -33,16 +33,24 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, reactive, onMounted } from 'vue';
 // 引入獲取菜單請求API
-import { reqAllPermission } from '@/api/acl/menu';
+import { reqAllPermission, reqAddOrUpdateMenu } from '@/api/acl/menu';
 // 引入ts類型
-import type { PermissionResponseData, PermissionList, Permission } from '@/api/acl/menu/type';
+import type { PermissionResponseData, PermissionList, Permission, MenuParams } from '@/api/acl/menu/type';
+import { ElMessage } from 'element-plus';
 
 // 存儲菜單的數據
 let permissionArr = ref<PermissionList>([])
 // 控制對話框的顯示與隱藏
 let dialogVisible = ref<boolean>(false);
+// 攜帶的參數
+let menuData = reactive<MenuParams>({
+  "code": "",
+  "level": 0,
+  "name": "",
+  "pid": 0
+})
 
 // 組件掛載完畢
 onMounted(() => {
@@ -58,14 +66,44 @@ const getHasPermission = async () => {
 }
 
 // 添加菜單按鈕的回調
-const addPermission = () => {
+const addPermission = (row: Permission) => {
+
+  // 清空數據
+  Object.assign(menuData, {
+    "id": 0,
+    "code": "",
+    "level": 0,
+    "name": "",
+    "pid": 0
+  }) 
+
   // 對話框顯示出來
   dialogVisible.value = true
+  // 收集新增的菜單的level數值
+  menuData.level = row.level + 1
+  // 給誰新增子菜單
+  menuData.pid = row.id as number
 }
 
 // 編輯已有的菜單
 const updatePermission = (row: Permission) => {
   dialogVisible.value = true
+
+  // 點擊修改按鈕: 收集已有的菜單的數據進行更新
+  Object.assign(menuData, row)
+}
+
+// 確定按鈕的回調
+const save = async () => {
+  let result: any = await reqAddOrUpdateMenu(menuData)
+  if (result.code == 200) {
+    // 對話框隱藏
+    dialogVisible.value = false
+    // 提示信息
+    ElMessage({type: 'success', message: menuData.id? '更新成功': '添加成功'})
+    // 再次獲取全部最新的菜單的數據
+    getHasPermission()
+  }
 }
 </script>
 

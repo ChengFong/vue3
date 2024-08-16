@@ -25,3 +25,12 @@ export type PermissionList = Permission[]
 export interface PermissionResponseData extends ResponseData {
     data: PermissionList
 }
+
+// 添加與修改菜單攜帶的參數ts類型
+export interface MenuParams {
+    id?: number, //ID
+    code: string, // 權限數值
+    level: number, // 幾級菜單
+    name: string, // 菜單的名字
+    pid: number // 菜單的ID
+}
