@@ -8,7 +8,9 @@ enum API {
     // 給某一級菜單新增一個子菜單
     ADDMENU_URL = '/admin/acl/permission/save',
     // 更新某一個已有的菜單
-    UPDATE_URL = '/admin/acl/permission/update'
+    UPDATE_URL = '/admin/acl/permission/update',
+    // 刪除已有的菜單
+    DELETEMENU_URL = '/admin/acl/permission/remove'
 }
 
 // 獲取菜單數據
@@ -21,3 +23,5 @@ export const reqAddOrUpdateMenu = (data: MenuParams) => {
         return request.post<any, any>(API.ADDMENU_URL, data)
     }
 }
+// 刪除某一個已有的菜單
+export const reqRemoveMenu = (id: number) => request.delete<any, any>(API.DELETEMENU_URL + '/' + id)

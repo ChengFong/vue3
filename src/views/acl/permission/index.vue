@@ -8,7 +8,16 @@
        <template #="{ row, $index }">
           <el-button @click="addPermission(row)" type="primary" size="small" :disabled="row.level==4?true:false">{{ row.level==3?'添加功能':'添加菜單' }}</el-button>
           <el-button @click="updatePermission(row)" type="primary" size="small" :disabled="row.level==1?true:false">編輯</el-button>
-          <el-button type="primary" size="small" :disabled="row.level==1?true:false">刪除</el-button>
+          <el-popconfirm
+            :title="`您確定要刪除${row.name}`"
+            width="260px"
+            icon="Delete"
+            @confirm="removeMenu(row.id)"
+            >
+            <template #reference>
+              <el-button type="primary" size="small" icon="Delete" :disabled="row.level==1?true:false">刪除</el-button>
+            </template>
+          </el-popconfirm>
        </template>
     </el-table-column>
   </el-table>
@@ -35,7 +44,7 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue';
 // 引入獲取菜單請求API
-import { reqAllPermission, reqAddOrUpdateMenu } from '@/api/acl/menu';
+import { reqAllPermission, reqAddOrUpdateMenu, reqRemoveMenu } from '@/api/acl/menu';
 // 引入ts類型
 import type { PermissionResponseData, PermissionList, Permission, MenuParams } from '@/api/acl/menu/type';
 import { ElMessage } from 'element-plus';
@@ -102,6 +111,15 @@ const save = async () => {
     // 提示信息
     ElMessage({type: 'success', message: menuData.id? '更新成功': '添加成功'})
     // 再次獲取全部最新的菜單的數據
+    getHasPermission()
+  }
+}
+
+// 刪除按鈕回調
+const removeMenu = async (id: number) => {
+  let result: any = await reqRemoveMenu(id)
+  if (result.code == 200) {
+    ElMessage({type: 'success', message: '刪除成功'})
     getHasPermission()
   }
 }
