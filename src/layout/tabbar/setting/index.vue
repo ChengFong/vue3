@@ -22,7 +22,7 @@
     <!-- 表單元素 -->
     <el-form>
       <el-form-item label="主題顏色">
-        <el-color-picker v-model="color" show-alpha size="samll" :predefine="predefineColors" />
+        <el-color-picker @change="setColor" v-model="color" show-alpha size="samll" :predefine="predefineColors" />
       </el-form-item>
       <el-form-item label="暗黑模式">
         <el-switch
@@ -129,6 +129,13 @@ const changeDark = () => {
   let html = document.documentElement
   // 判斷HTML標籤是否有類名
   dark.value?html.className='dark':html.className=''
+}
+
+// 主題顏色的設置
+const setColor = () => {
+  // 通知js修改根結點的樣式對象的屬性與屬性值
+  const html = document.documentElement
+  html.style.setProperty('--el-color-primary', color.value)
 }
 </script>
 
