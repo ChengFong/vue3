@@ -30,7 +30,9 @@ onMounted(()=>{
       bottom: 50,
       // 地圖上的文字地設置
       label: {
-        show: true
+        show: true, // 文字顯示出來
+        color: 'white',
+        fontSize: 14
       },
       itemStyle: {
         // 每一個多邊形的樣式
@@ -46,9 +48,52 @@ onMounted(()=>{
               offset: 1, color: 'blue' // 100% 处的颜色
           }],
           global: false // 缺省为 false
+        },
+        opacity: .8
+      },
+      // 地圖高亮的效果
+      emphasis: {
+        itemStyle: {
+          color: 'red'
+        },
+        label: {
+          fontSize: 40
         }
       }
-    }
+    },
+    // 布局位置
+    grid: {
+      left: 0,
+      top: 0,
+      right: 0,
+      bottom: 0
+    },
+    series: [
+      {
+        type: 'lines', // 航線的系列
+        data: [
+          {
+            coords: [
+              [116.405285, 39.904989], // 起點
+              [117.283042, 31.86119]  // 終點
+            ],
+            // 統一的樣式設置
+            lineStyle: {
+              color: 'orange',
+              width: 5
+            },
+            
+          }
+        ],
+        // 開啟動畫特效
+        effect: {
+          show: true,
+          symbol: 'arrow',
+          color: 'black',
+          symbolSize: 10
+        }
+      }
+    ]
   })
 })
 </script>
