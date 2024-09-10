@@ -9,6 +9,7 @@ nprogress.configure({ showSpinner: false })
 // 獲取用戶相關的小倉庫內部token數據，去判斷用戶是否登錄成功
 import useUserStore from './store/modules/user'
 import pinia from './store'
+import { SortUp } from '@element-plus/icons-vue/dist/types'
 const userStore = useUserStore(pinia)
 
 // 全局守衛: 項目當中任意路由切換都會觸發的鉤子
@@ -37,9 +38,13 @@ router.beforeEach(async (to: any, from: any, next: any) => {
         next()
       } else {
         // 如果沒有用戶信息，在守衛這裡發請求獲取到了用戶信息再放行
-        try {
+        try {  
+
           await userStore.userInfo()
-          next()
+
+          // 萬一: 刷新的時候是異步路由，有可能獲取到用戶信息、異步路由還沒有加載完畢，出現空白的效果
+          next({...to, replace: true})
+
         } catch (error) {
           // token過期: 獲取不到用戶信息
           // 用戶手動修改本地存儲token

@@ -15,6 +15,10 @@ import { SET_TOKEN, GET_TOKEN, REMOVE_TOKEN } from '@/utils/token'
 import { constantRoute, asyncRoute, anyRoute } from '@/router/routes'
 import router from '@/router'
 
+// 引入深拷貝方法
+// @ts-ignore
+import cloneDeep from 'lodash/cloneDeep'
+
 // 用於過濾當前用戶須要展示的異步路由
 function filterAsyncRoute(asyncRoute: any, routes: any) {
   return asyncRoute.filter((item: any) => {
@@ -66,11 +70,12 @@ const useUserStore = defineStore('User', {
 
       // 如果獲取用戶信息成功，存儲一下用戶信息
       if (result.code == 200) {
-        this.username = result.data.username
+
+        this.username = result.data.name
         this.avatar = result.data.avatar
 
         // 計算當前用戶須要展示的異步路由
-        let userAsyncRoute = filterAsyncRoute(asyncRoute, result.data.routes)
+        let userAsyncRoute = filterAsyncRoute(cloneDeep(asyncRoute), result.data.routes)
 
         // 菜單的數據
         this.menuRoutes = [...constantRoute, ...userAsyncRoute, anyRoute]
