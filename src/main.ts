@@ -37,5 +37,9 @@ import pinia from './store'
 // 安裝倉庫
 app.use(pinia)
 
+// 引入自定義指令文件
+import { isHasButton } from './directive/has'
+isHasButton(app)
+
 // 將應用掛載到掛載點上
 app.mount('#app')

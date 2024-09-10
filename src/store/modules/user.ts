@@ -41,6 +41,8 @@ const useUserStore = defineStore('User', {
       menuRoutes: constantRoute, // 倉庫存儲生成菜單需要數組(路由)
       username: '',
       avatar: '',
+      // 存儲當前用戶是否包含某一個按鈕
+      buttons: [],
     }
   },
   // 異步|邏輯的地方
@@ -73,6 +75,7 @@ const useUserStore = defineStore('User', {
 
         this.username = result.data.name
         this.avatar = result.data.avatar
+        this.buttons = result.data.buttons
 
         // 計算當前用戶須要展示的異步路由
         let userAsyncRoute = filterAsyncRoute(cloneDeep(asyncRoute), result.data.routes)
