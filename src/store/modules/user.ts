@@ -12,7 +12,22 @@ import type { UserState } from './types/type'
 // 引入操作本地存儲的工具方法
 import { SET_TOKEN, GET_TOKEN, REMOVE_TOKEN } from '@/utils/token'
 // 引入路由(常量路由)
-import { constantRoute } from '@/router/routes'
+import { constantRoute, asyncRoute, anyRoute } from '@/router/routes'
+import router from '@/router'
+
+// 用於過濾當前用戶須要展示的異步路由
+function filterAsyncRoute(asyncRoute: any, routes: any) {
+  return asyncRoute.filter((item: any) => {
+    if (routes.includes(item.name)) {
+      if (item.children && item.children.length > 0) {
+        item.children = filterAsyncRoute(item.children, routes)
+      }
+      return true;
+    }
+  })
+}
+
+
 // 創建用戶小倉庫
 const useUserStore = defineStore('User', {
   // 小倉庫存儲數據地方
@@ -48,10 +63,27 @@ const useUserStore = defineStore('User', {
     async userInfo() {
       // 獲取用戶信息進行存儲倉庫當中(用戶頭像、名字)
       const result: userInfoReponseData = await reqUserInfo()
+
       // 如果獲取用戶信息成功，存儲一下用戶信息
       if (result.code == 200) {
         this.username = result.data.username
         this.avatar = result.data.avatar
+
+        // 計算當前用戶須要展示的異步路由
+        let userAsyncRoute = filterAsyncRoute(asyncRoute, result.data.routes)
+
+        // 菜單的數據
+        this.menuRoutes = [...constantRoute, ...userAsyncRoute, anyRoute]
+        
+        // 目前路由器管理的只有常量路由: 用戶計算完畢異步路由、任意路由動態追加
+        let addRouteArr = [...userAsyncRoute, anyRoute]
+        addRouteArr.forEach((route: any) => {
+          router.addRoute(route)
+        });
+
+        // 打印當前用戶全部的路由
+        console.log(router.getRoutes)
+
         return 'ok'
       } else {
         return Promise.reject(new Error(result.message))
